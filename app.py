@@ -41,7 +41,7 @@ MODIFICATIONS = {
 
 @app.route('/')
 def index():
-    return render_template('order_form.html', modifications=MODIFICATIONS)
+    return render_template('order_form.html', modifications=MODIFICATIONS, kits=MODIFICATIONS)
 
 @app.route('/test')
 def test():
