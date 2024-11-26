@@ -97,9 +97,43 @@
                 <label for="kit">Select Module Kit:</label>
                 <select id="kit" name="kit" required>
                     <option value="">-- Please select a kit --</option>
-                    {% for kit, details in kits.items() %}
-                        <option value="{{ kit }}">{{ kit }} - ${{ '{:,}'.format(details.price) }}</option>
-                    {% endfor %}
+                    {% for category, items in modifications.items() %}
+<div class="modification-section">
+    <h3>{{ category|title }}</h3>
+    <div class="price-columns">
+        <div>Item</div>
+        <div>Base Price</div>
+        <div>Markup %</div>
+        <div>Final Price</div>
+        <div>Quantity</div>
+    </div>
+    {% for item, price in items.items() %}
+    <div class="mod-item">
+        <div>{{ item }}</div>
+        <div class="base-price">${{ price }}</div>
+        <div>
+            <input type="number" 
+                   class="markup-percent"
+                   name="markup_{{ item|lower|replace(' ', '_') }}"
+                   value="30"
+                   min="0"
+                   onchange="updatePrice(this)"
+                   data-base-price="{{ price }}">%
+        </div>
+        <div class="final-price">${{ (price * 1.3)|round(2) }}</div>
+        <div>
+            <input type="number" 
+                   class="quantity"
+                   name="{{ item|lower|replace(' ', '_') }}"
+                   value="0"
+                   min="0"
+                   onchange="updateTotals()"
+                   data-price="{{ price }}">
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
                 </select>
                 <div id="kit-description" class="kit-description"></div>
             </div>
