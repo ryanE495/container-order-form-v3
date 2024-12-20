@@ -1,51 +1,55 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+from datetime import datetime
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-# Define the modifications data
-MODIFICATIONS = {
-    'security': {
-        'Bolt-on Lock Boxes': 85,
-        'Latch-on Cargo Door Locks': 228,
-        'Roll-up Door Lock Box': 72
-    },
-    'mobility': {
-        'Caster Wheels': 403
-    },
-    'shelter': {
-        'Container Shelter for 20ft Container Single Truss': 9490,
-        'Container Shelter for 40ft Container Single Truss': 11700
-    },
-    'windows': {
-        'Double Pane Picture Window Kit - 36in x 36in': 507,
-        'Double Pane Picture Window With Security Bars Kit - 36in x 36in': 430
-    },
-    'doors': {
-        'Roll-Up Door 6ft x 6ft 8in': 845,
-        'Roll-Up Door 7ft x 6ft 8in': 910,
-        'Roll-Up Door 8ft x 6ft 8in': 1031,
-        'Steel Man Door (Left Hand In-swing)': 618,
-        'Steel Man Door (Left Hand Out-swing)': 618,
-        'Steel Man Door (Right Hand In-swing)': 618,
-        'Steel Man Door (Right Hand Out-swing)': 618
-    },
-    'ventilation': {
-        'Louvered Vent Kit': 46,
-        'Wind Turbine Vent Kit': 104
-    },
-    'shelving': {
-        'Hang On Shelf Bracket: 1 Rack': 156,
-        'Hang On Shelf Bracket: 2 Racks': 312
-    }
-}
+# Import the product catalog
+from products import PRODUCT_CATALOG
 
 @app.route('/')
 def index():
-    return render_template('order_form.html', modifications=MODIFICATIONS, kits=MODIFICATIONS)
+    return render_template('order_form.html', catalog=PRODUCT_CATALOG)
 
-@app.route('/test')
-def test():
-    return "Hello, World!"
+@app.route('/generate-quote', methods=['POST'])
+def generate_quote():
+    data = request.json
+    
+    # Save order to JSON file
+    order_id = save_order(data)
+    
+    return jsonify({
+        'success': True,
+        'order_id': order_id
+    })
+
+def save_order(order_data):
+    timestamp = datetime.now().isoformat()
+    order_id = f"ORD-{timestamp.replace(':', '').replace('.', '')}"
+    
+    order_record = {
+        'order_id': order_id,
+        'timestamp': timestamp,
+        'data': order_data
+    }
+    
+    # Save to JSON file
+    try:
+        with open('orders.json', 'r') as f:
+            orders = json.load(f)
+    except FileNotFoundError:
+        orders = []
+    
+    orders.append(order_record)
+    
+    with open('orders.json', 'w') as f:
+        json.dump(orders, f, indent=2)
+    
+    return order_id
 
 if __name__ == '__main__':
     app.run(debug=True)
